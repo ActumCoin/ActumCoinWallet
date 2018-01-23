@@ -20,6 +20,24 @@ public class GUI extends JFrame {
 		JLabel logo = new JLabel(new ImageIcon("res/logo.png"));
 		logo.setBounds(274, 0, 171, 119);// gah! not quite centered, should be right another 0.5 pixels
 
+		// address button
+		JButton sendButton = new JButton("Send ActumCoin");
+		sendButton.setBounds(10, 10, 210, 40);
+		sendButton.setBackground(Color.WHITE);
+
+		// 
+		sendButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SendDialog s = new SendDialog();
+				
+				while(s.repeat) {
+					s = new SendDialog();
+				}
+				
+				System.out.println(s.amount);
+			}
+		});
+		
 		// window close listener
 		this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
@@ -28,12 +46,15 @@ public class GUI extends JFrame {
 		});
 
 		add(logo);
+		add(sendButton);
+		
 		// icon
 		try {
 			setIconImage(ImageIO.read(new File("res/logo.png")));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
+		
 
 		setTitle("ActumCoinWallet");
 		setSize(720, 576);
