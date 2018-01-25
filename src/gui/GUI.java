@@ -55,10 +55,9 @@ public class GUI extends JFrame {
 				if ((s != null) && (s.length() > 0)) {
 					TransactionCode tc = new TransactionCode(s);
 
-					int result = JOptionPane.showConfirmDialog(f, "<html>Confirm that you would like to send "
-							+ (tc.getToken().equals("atc") ? "&#164;" : tc.getToken()) + tc.getAmount() + ".</html>",
+					iint result = JOptionPane.showConfirmDialog(f, "<html>Confirm that you would like to send "
+							+ (tc.getToken().equals("acm") ? "&#164;" : tc.getToken()) + tc.getAmount() + ".</html>",
 							"Confirm transaction", JOptionPane.CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
-
 					if (result == JOptionPane.OK_OPTION) {
 						// send
 					}
