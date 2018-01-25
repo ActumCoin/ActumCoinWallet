@@ -7,7 +7,7 @@ public class TransactionCode {
 	/*
 	 * syntax:
 	 * first 3 are token ID ex.:
-	 * atc
+	 * acm
 	 * next 4 are hex of whole number ex.: 
 	 * 0001 next 5
 	 * are hex of decimal ex.: 
@@ -15,7 +15,7 @@ public class TransactionCode {
 	 * last 64 are address ex.:
 	 * 80084bf2fba02475726feb2cab2d8215eab14bc6bdd8bfb2c8151257032ecd8b
 	 * full code ex.:
-	 * atc00010000180084bf2fba02475726feb2cab2d8215eab14bc6bdd8bfb2c8151257032ecd8b
+	 * acm00010000180084bf2fba02475726feb2cab2d8215eab14bc6bdd8bfb2c8151257032ecd8b
 	 */
 
 	private String code;
