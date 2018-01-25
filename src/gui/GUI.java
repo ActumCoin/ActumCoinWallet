@@ -8,8 +8,12 @@ import java.util.Enumeration;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
+import util.Preferences;
+import util.TransactionCode;
+
 public class GUI extends JFrame {
 	private JFrame f;
+	private boolean isPreferences;
 
 	public GUI() {
 		// init
@@ -20,24 +24,77 @@ public class GUI extends JFrame {
 		JLabel logo = new JLabel(new ImageIcon("res/logo.png"));
 		logo.setBounds(274, 0, 171, 119);// gah! not quite centered, should be right another 0.5 pixels
 
-		// address button
+		// transaction code button
+		JButton codeButton = new JButton("Enter Code");
+		codeButton.setBounds(10, 10, 210, 40);
+		codeButton.setBackground(Color.WHITE);
+
+		// send button
 		JButton sendButton = new JButton("Send ActumCoin");
-		sendButton.setBounds(10, 10, 210, 40);
+		sendButton.setBounds(260, 139, 210, 40);
 		sendButton.setBackground(Color.WHITE);
 
-		// 
+		// preferences button
+		JButton preferencesButton = new JButton("Preferences");
+		preferencesButton.setBounds(480, 10, 210, 40);
+		preferencesButton.setBackground(Color.WHITE);
+
+		// preferences stuff
+		CheckBox linkCheckBox = new CheckBox("Link with miner", Preferences.isLink());
+		linkCheckBox.setBounds(480, 60, 200, 30);
+		linkCheckBox.setVisible(false);
+		linkCheckBox.setToolTipText(
+				"This allows ActumCoinWallet to automatically sync with your ActumMiner, if it's on this PC.");
+
+		// button listeners
+		codeButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String s = (String) JOptionPane.showInputDialog(f, "Enter a transaction code",
+						"Enter a transaction code", JOptionPane.PLAIN_MESSAGE, null, null, "");
+
+				if ((s != null) && (s.length() > 0)) {
+					TransactionCode tc = new TransactionCode(s);
+
+					int result = JOptionPane.showConfirmDialog(f, "<html>Confirm that you would like to send "
+							+ (tc.getToken().equals("atc") ? "&#164;" : tc.getToken()) + tc.getAmount() + ".</html>",
+							"Confirm transaction", JOptionPane.CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
+
+					if (result == JOptionPane.OK_OPTION) {
+						// send
+					}
+				}
+			}
+		});
+
 		sendButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				SendDialog s = new SendDialog();
-				
-				while(s.repeat) {
+
+				while (s.repeat) {
 					s = new SendDialog();
 				}
-				
+
 				System.out.println(s.amount);
 			}
 		});
-		
+
+		preferencesButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				isPreferences = !isPreferences;
+				linkCheckBox.setVisible(isPreferences);
+				if (isPreferences) {
+					// if already closed
+					preferencesButton.setText("Save");
+				} else {
+					// if already open\
+					System.out.println(linkCheckBox.isChecked());
+					Preferences.setLink(linkCheckBox.isChecked());
+					preferencesButton.setText("Preferences");
+				}
+
+			}
+		});
+
 		// window close listener
 		this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
@@ -46,15 +103,17 @@ public class GUI extends JFrame {
 		});
 
 		add(logo);
+		add(codeButton);
 		add(sendButton);
-		
+		add(preferencesButton);
+		add(linkCheckBox);
+
 		// icon
 		try {
 			setIconImage(ImageIO.read(new File("res/logo.png")));
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		
 
 		setTitle("ActumCoinWallet");
 		setSize(720, 576);
