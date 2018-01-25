@@ -46,6 +46,17 @@ public class GUI extends JFrame {
 		linkCheckBox.setToolTipText(
 				"This allows ActumCoinWallet to automatically sync with your ActumMiner, if it's on this PC.");
 
+		// balance
+		JLabel balanceLabel = new JLabel("<html>&#164; " + /* placeholder >*/"1000.00000");
+		balanceLabel.setBounds(10, 189, 700, 60);
+		balanceLabel.setFont(new javax.swing.plaf.FontUIResource("1234", Font.PLAIN, 60));
+		
+		// address
+		JLabel addressLabel = new JLabel(/* placeholder >*/"80084bf2fba02475726feb2cab2d8215eab14bc6bdd8bfb2c8151257032ecd8b");
+		addressLabel.setBounds(10, 306, 700, 26);
+		addressLabel.setFont(new javax.swing.plaf.FontUIResource("1234", Font.PLAIN, 16));
+		addressLabel.addMouseListener(new PopClickListener(/* placeholder >*/"80084bf2fba02475726feb2cab2d8215eab14bc6bdd8bfb2c8151257032ecd8b"));
+
 		// button listeners
 		codeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -55,9 +66,10 @@ public class GUI extends JFrame {
 				if ((s != null) && (s.length() > 0)) {
 					TransactionCode tc = new TransactionCode(s);
 
-					iint result = JOptionPane.showConfirmDialog(f, "<html>Confirm that you would like to send "
+					int result = JOptionPane.showConfirmDialog(f, "<html>Confirm that you would like to send "
 							+ (tc.getToken().equals("acm") ? "&#164;" : tc.getToken()) + tc.getAmount() + ".</html>",
 							"Confirm transaction", JOptionPane.CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
+
 					if (result == JOptionPane.OK_OPTION) {
 						// send
 					}
@@ -106,6 +118,8 @@ public class GUI extends JFrame {
 		add(sendButton);
 		add(preferencesButton);
 		add(linkCheckBox);
+		add(balanceLabel);
+		add(addressLabel);
 
 		// icon
 		try {
@@ -115,7 +129,7 @@ public class GUI extends JFrame {
 		}
 
 		setTitle("ActumCoinWallet");
-		setSize(720, 576);
+		setSize(720, 376);
 		setLayout(null);
 		setResizable(false);
 		setVisible(true);
