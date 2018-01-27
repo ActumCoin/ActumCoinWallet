@@ -2,7 +2,7 @@
 
 # ActumCoinWallet
 
-Official Linux, Windows, and MacOS ActumCoin Wallet
+Official Linux, Windows, and OSX ActumCoin Wallet
 
 ## Usage
 #### WIP
