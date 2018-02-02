@@ -3,21 +3,17 @@ package gui;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Enumeration;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-import mining.MiningManager;
 import util.Preferences;
+import util.TransactionCode;
 
 public class GUI extends JFrame {
 	private JFrame f;
-	private boolean isPreferences = false;
+	private boolean isPreferences;
 
 	public GUI() {
 		// init
@@ -28,11 +24,15 @@ public class GUI extends JFrame {
 		JLabel logo = new JLabel(new ImageIcon("res/logo.png"));
 		logo.setBounds(274, 0, 171, 119);// gah! not quite centered, should be right another 0.5 pixels
 
-		// mine button
-		JButton mineButton = new JButton("Start Mining");
-		mineButton.setBounds(260, 139, 210, 40);
-		mineButton.setBackground(Color.WHITE);
-		mineButton.setEnabled(Preferences.getAddress() != null);
+		// transaction code button
+		JButton codeButton = new JButton("Enter Code");
+		codeButton.setBounds(10, 10, 210, 40);
+		codeButton.setBackground(Color.WHITE);
+
+		// send button
+		JButton sendButton = new JButton("Send ActumCoin");
+		sendButton.setBounds(260, 139, 210, 40);
+		sendButton.setBackground(Color.WHITE);
 
 		// preferences button
 		JButton preferencesButton = new JButton("Preferences");
@@ -40,42 +40,52 @@ public class GUI extends JFrame {
 		preferencesButton.setBackground(Color.WHITE);
 
 		// preferences stuff
-		CheckBox linkCheckBox = new CheckBox("Link with wallet", Preferences.isLink());
+		CheckBox linkCheckBox = new CheckBox("Link with miner", Preferences.isLink());
 		linkCheckBox.setBounds(480, 60, 200, 30);
 		linkCheckBox.setVisible(false);
 		linkCheckBox.setToolTipText(
-				"This allows ActumMiner to automatically sync with your ActumWallet, if it's on this PC.");
+				"This allows ActumCoinWallet to automatically sync with your ActumMiner, if it's on this PC.");
 
-		// address button
-		JButton addressButton = new JButton("Set Address");
-		addressButton.setBounds(10, 10, 210, 40);
-		addressButton.setBackground(Color.WHITE);
-
-		// display current address
-		JLabel currentAddress = new JLabel(Preferences.getAddress());
-		currentAddress.setBounds(10, 10, 210, 100);
-		currentAddress.setFont(new javax.swing.plaf.FontUIResource("1234", Font.ITALIC, 14));
-
-		// log
-		LiveLog log = new LiveLog("Log", new String[7], 20, 220, 660, 276,
-				new String[] { "Ready to mine...", "Currently mining..." }, 0);
-		DateFormat df = DateFormat.getTimeInstance();
+		// balance
+		JLabel balanceLabel = new JLabel("<html>&#164; " + /* placeholder >*/"1000.00000");
+		balanceLabel.setBounds(10, 189, 700, 60);
+		balanceLabel.setFont(new javax.swing.plaf.FontUIResource("1234", Font.PLAIN, 60));
+		
+		// address
+		JLabel addressLabel = new JLabel(/* placeholder >*/"80084bf2fba02475726feb2cab2d8215eab14bc6bdd8bfb2c8151257032ecd8b");
+		addressLabel.setBounds(10, 306, 700, 26);
+		addressLabel.setFont(new javax.swing.plaf.FontUIResource("1234", Font.PLAIN, 16));
+		addressLabel.addMouseListener(new PopClickListener(/* placeholder >*/"80084bf2fba02475726feb2cab2d8215eab14bc6bdd8bfb2c8151257032ecd8b"));
 
 		// button listeners
-		mineButton.addActionListener(new ActionListener() {
+		codeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Calendar cal = Calendar.getInstance();
-				Timestamp time = new Timestamp(cal.getTimeInMillis());
-				// toggle mining
-				if (MiningManager.isCurrentlyMining()) {
-					mineButton.setText("Start Mining");
-					log.log("Stopped mining: " + df.format(new Date(time.getTime())), 0);
-					MiningManager.stopMining();
-				} else {
-					mineButton.setText("Stop Mining");
-					log.log("Started mining: " + df.format(new Date(time.getTime())), 1);
-					MiningManager.mine();
+				String s = (String) JOptionPane.showInputDialog(f, "Enter a transaction code",
+						"Enter a transaction code", JOptionPane.PLAIN_MESSAGE, null, null, "");
+
+				if ((s != null) && (s.length() > 0)) {
+					TransactionCode tc = new TransactionCode(s);
+
+					int result = JOptionPane.showConfirmDialog(f, "<html>Confirm that you would like to send "
+							+ (tc.getToken().equals("acm") ? "&#164;" : tc.getToken()) + tc.getAmount() + ".</html>",
+							"Confirm transaction", JOptionPane.CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
+
+					if (result == JOptionPane.OK_OPTION) {
+						// send
+					}
 				}
+			}
+		});
+
+		sendButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SendDialog s = new SendDialog();
+
+				while (s.repeat) {
+					s = new SendDialog();
+				}
+
+				System.out.println(s.amount);
 			}
 		});
 
@@ -87,63 +97,29 @@ public class GUI extends JFrame {
 					// if already closed
 					preferencesButton.setText("Save");
 				} else {
-					// if already open
+					// if already open\
+					System.out.println(linkCheckBox.isChecked());
 					Preferences.setLink(linkCheckBox.isChecked());
 					preferencesButton.setText("Preferences");
-					
-					// log
-					Calendar cal = Calendar.getInstance();
-					Timestamp time = new Timestamp(cal.getTimeInMillis());
-					log.log("Preferences updated: " + df.format(new Date(time.getTime())), log.getStatus());
 				}
 
-			}
-		});
-
-		addressButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String s = (String) JOptionPane.showInputDialog(f, "Paste your wallet address",
-						"Paste your wallet address", JOptionPane.PLAIN_MESSAGE, null, null, "");
-
-				if ((s != null) && (s.length() > 0)) {
-					Preferences.setAddress(s);
-					currentAddress.setText(s);
-					
-					// update mine button enabled
-					mineButton.setEnabled(Preferences.getAddress() != null);
-					
-					// log
-					Calendar cal = Calendar.getInstance();
-					Timestamp time = new Timestamp(cal.getTimeInMillis());
-					log.log("Address updated: " + df.format(new Date(time.getTime())), log.getStatus());
-				}
 			}
 		});
 
 		// window close listener
 		this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
-				if (MiningManager.isCurrentlyMining()) {
-					int n = JOptionPane.showConfirmDialog(f,
-							"You are currently mining, would you like to stop and exit?", "Currently mining",
-							JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-					if (n == JOptionPane.YES_OPTION) {
-						MiningManager.stopMining();
-						dispose();
-					}
-				} else {
-					dispose();
-				}
+				dispose();
 			}
 		});
 
 		add(logo);
-		add(mineButton);
+		add(codeButton);
+		add(sendButton);
 		add(preferencesButton);
 		add(linkCheckBox);
-		add(addressButton);
-		add(currentAddress);
-		add(log.getLabel());
+		add(balanceLabel);
+		add(addressLabel);
 
 		// icon
 		try {
@@ -152,8 +128,8 @@ public class GUI extends JFrame {
 			e1.printStackTrace();
 		}
 
-		setTitle("ActumMiner");
-		setSize(720, 576);
+		setTitle("ActumCoinWallet");
+		setSize(720, 376);
 		setLayout(null);
 		setResizable(false);
 		setVisible(true);
