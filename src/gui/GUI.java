@@ -3,19 +3,23 @@ package gui;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
+import balance.Balance;
+import balance.Balances;
+import coinstuffs.TransactionCode;
 import util.Preferences;
-import util.TransactionCode;
 
 public class GUI extends JFrame {
 	private JFrame f;
 	private boolean isPreferences;
 
-	public GUI() {
+	public GUI(Balances balances) {
 		// init
 		setUIFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 26));
 		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -30,7 +34,7 @@ public class GUI extends JFrame {
 		codeButton.setBackground(Color.WHITE);
 
 		// send button
-		JButton sendButton = new JButton("Send ActumCoin");
+		JButton sendButton = new JButton("Send");
 		sendButton.setBounds(260, 139, 210, 40);
 		sendButton.setBackground(Color.WHITE);
 
@@ -46,15 +50,26 @@ public class GUI extends JFrame {
 		linkCheckBox.setToolTipText(
 				"This allows ActumCoinWallet to automatically sync with your ActumMiner, if it's on this PC.");
 
-		// balance
-		JLabel balanceLabel = new JLabel("<html>&#164; " + /* placeholder >*/"1000.00000");
-		balanceLabel.setBounds(10, 189, 700, 60);
-		balanceLabel.setFont(new javax.swing.plaf.FontUIResource("1234", Font.PLAIN, 60));
+		// balances
+		JLabel acmBalanceLabel = new JLabel(balances.getBalances().get(0).toString());
+		acmBalanceLabel.setBounds(10, 189, 700, 60);
+		acmBalanceLabel.setFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 60));
+		
+		int currentIndex = 0;
+		List<JLabel> balanceLabels = new ArrayList<JLabel>();
+		for (Balance balance : balances.getBalances()) {
+			if (currentIndex != 0 || currentIndex < 6) {
+				JLabel label = new JLabel(balance.toString());
+				label.setBounds(col(currentIndex),  row(currentIndex), 700, 60);
+				balanceLabels.add(label);
+			}
+			currentIndex++;
+		}
 		
 		// address
 		JLabel addressLabel = new JLabel(/* placeholder >*/"80084bf2fba02475726feb2cab2d8215eab14bc6bdd8bfb2c8151257032ecd8b");
 		addressLabel.setBounds(10, 306, 700, 26);
-		addressLabel.setFont(new javax.swing.plaf.FontUIResource("1234", Font.PLAIN, 16));
+		addressLabel.setFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 16));
 		addressLabel.addMouseListener(new PopClickListener(/* placeholder >*/"80084bf2fba02475726feb2cab2d8215eab14bc6bdd8bfb2c8151257032ecd8b"));
 
 		// button listeners
@@ -66,8 +81,7 @@ public class GUI extends JFrame {
 				if ((s != null) && (s.length() > 0)) {
 					TransactionCode tc = new TransactionCode(s);
 
-					int result = JOptionPane.showConfirmDialog(f, "<html>Confirm that you would like to send "
-							+ (tc.getToken().equals("acm") ? "&#164;" : tc.getToken()) + tc.getAmount() + ".</html>",
+					int result = JOptionPane.showConfirmDialog(f, "<html>Confirm that you would like to send " + tc.getToken() + " " + tc.getAmount() + ".</html>",
 							"Confirm transaction", JOptionPane.CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
 
 					if (result == JOptionPane.OK_OPTION) {
@@ -79,13 +93,15 @@ public class GUI extends JFrame {
 
 		sendButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				SendDialog s = new SendDialog();
+				SendDialog s = new SendDialog(balances);
 
-				while (s.repeat) {
-					s = new SendDialog();
+				while (s.isRepeat()) {
+					s = new SendDialog(balances);
 				}
+				
+				
 
-				System.out.println(s.amount);
+				System.out.println(s.getAmount());
 			}
 		});
 
@@ -118,8 +134,13 @@ public class GUI extends JFrame {
 		add(sendButton);
 		add(preferencesButton);
 		add(linkCheckBox);
-		add(balanceLabel);
+		add(acmBalanceLabel);
 		add(addressLabel);
+		
+		// balances
+		for (JLabel label : balanceLabels) {
+			add(label);
+		}
 
 		// icon
 		try {
@@ -144,6 +165,17 @@ public class GUI extends JFrame {
 				UIManager.put(key, f);
 		}
 		UIManager.put("ToolTip.font", new javax.swing.plaf.FontUIResource(f.getFontName(), Font.ITALIC, 14));
+	}
+	
+	private int row(int i) {
+		// returns row y coordinate
+		return 199 + ((i%2)==0 ? 2 : 1)*30;
+	}
+	
+	private int col(int i) {
+		// returns col x coordinate
+		float half = i/2f;
+		return (int) (10 + (Math.round(half)-1)*230);
 	}
 
 }
