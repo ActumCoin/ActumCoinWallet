@@ -4,7 +4,10 @@ import java.math.BigDecimal;
 
 import javax.swing.*;
 
+import balance.Balance;
 import balance.Balances;
+import balance.SendManager;
+import multichain.command.MultichainException;
 import net.miginfocom.swing.MigLayout;
 
 public class SendDialog {
@@ -13,9 +16,12 @@ public class SendDialog {
 	private String token;
 	private String address;
 	private boolean repeat;
+	private SendManager sm;
 
-	public SendDialog(Balances balances) {
-		Object[] options = { "Next", "Cancel" };
+	public SendDialog(Balances balances, SendManager s) {
+		sm = s;
+		
+		String[] options = { "Next", "Cancel" };
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new MigLayout());
@@ -42,6 +48,13 @@ public class SendDialog {
 				address = (String) JOptionPane.showInputDialog(panel,
 						"Paste address to send " + token + " " + amountField.getText() + " to.",
 						"Paste destination wallet address", JOptionPane.PLAIN_MESSAGE);
+				
+				// send
+				try {
+					s.send(new Balance(token, amount), address);
+				} catch (MultichainException e) {
+					e.printStackTrace();
+				}
 			} else {
 				JOptionPane.showMessageDialog(panel, "You do not have enough " + token + " to complete the transaction.\nYou need " + amount.subtract(balances.getBalanceFor(token)) + " more " + token + ".", "Insufficient " + token, JOptionPane.WARNING_MESSAGE);
 				repeat = true;
