@@ -17,12 +17,18 @@ public class Balances {
 			if (arg0.getToken().equals("ACM")) {
 				return -1;
 			}
+			
 			if (arg1.getToken().equals("ACM")) {
 				return 1;
 			}
 			
-			// sort rest by value
-			return -(arg0.getValue().compareTo(arg1.getValue()));
+			// if values are not equal, sort by value
+			if (arg0.getValue().compareTo(arg1.getValue()) != 0) {
+				return -(arg0.getValue().compareTo(arg1.getValue()));
+			}
+			
+			// sort rest by alphabetical order
+			return arg0.getToken().compareTo(arg1.getToken());
 		}
 		
 	};
