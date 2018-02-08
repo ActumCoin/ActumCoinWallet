@@ -12,17 +12,19 @@ import javax.swing.*;
 
 import balance.Balance;
 import balance.Balances;
-import coinstuffs.TransactionCode;
+import balance.SendManager;
 import util.Preferences;
+import util.TransactionCode;
 
 public class GUI extends JFrame {
 	private JFrame f;
 	private boolean isPreferences;
 
-	public GUI(Balances balances) {
+	public GUI(Balances balances, String address, SendManager sm) {
 		// init
 		setUIFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 26));
 		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		new QR(address);
 
 		// logo
 		JLabel logo = new JLabel(new ImageIcon("res/logo.png"));
@@ -51,9 +53,9 @@ public class GUI extends JFrame {
 				"This allows ActumCoinWallet to automatically sync with your ActumMiner, if it's on this PC.");
 
 		// balances
-		JLabel acmBalanceLabel = new JLabel(balances.getBalances().get(0).toString());
-		acmBalanceLabel.setBounds(10, 189, 700, 60);
-		acmBalanceLabel.setFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 60));
+		JLabel balanceLabel = new JLabel(balances.getBalances().get(0).toString());
+		balanceLabel.setBounds(10, 189, 700, 60);
+		balanceLabel.setFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 60));
 		
 		int currentIndex = 0;
 		List<JLabel> balanceLabels = new ArrayList<JLabel>();
@@ -67,10 +69,16 @@ public class GUI extends JFrame {
 		}
 		
 		// address
-		JLabel addressLabel = new JLabel(/* placeholder >*/"80084bf2fba02475726feb2cab2d8215eab14bc6bdd8bfb2c8151257032ecd8b");
+		JLabel addressLabel = new JLabel(address);
 		addressLabel.setBounds(10, 306, 700, 26);
 		addressLabel.setFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 16));
-		addressLabel.addMouseListener(new PopClickListener(/* placeholder >*/"80084bf2fba02475726feb2cab2d8215eab14bc6bdd8bfb2c8151257032ecd8b"));
+		addressLabel.addMouseListener(new PopClickListener(address));
+		
+		// qr code
+		JLabel qr = new JLabel(new ImageIcon("res/qr.png"));
+		qr.setBounds(485, 48, 200, 200);
+		qr.setToolTipText(
+				"Scanning this QR code outputs your wallet address, allowing you to easily send Actum to others.");
 
 		// button listeners
 		codeButton.addActionListener(new ActionListener() {
@@ -93,10 +101,10 @@ public class GUI extends JFrame {
 
 		sendButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				SendDialog s = new SendDialog(balances);
+				SendDialog s = new SendDialog(balances, sm);
 
 				while (s.isRepeat()) {
-					s = new SendDialog(balances);
+					s = new SendDialog(balances, sm);
 				}
 				
 				
@@ -134,8 +142,9 @@ public class GUI extends JFrame {
 		add(sendButton);
 		add(preferencesButton);
 		add(linkCheckBox);
-		add(acmBalanceLabel);
+		add(balanceLabel);
 		add(addressLabel);
+		add(qr);
 		
 		// balances
 		for (JLabel label : balanceLabels) {
