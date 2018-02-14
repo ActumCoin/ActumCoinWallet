@@ -24,10 +24,10 @@ public class Main {
 		new Preferences();
 
 		// connect to blockchain
-		String ip = "localhost";
+		String ip = "localhost"; // <-will change lol
 		String port = "4796";
 		String user = "multichainrpc";
-		String pass = "password (not the real password)";
+		String pass = "DzLbpqFWStpVajzyokHeYUmuYcVq5fUuPweV8fzW11Pf";
 		MultiChainCommand m = new MultiChainCommand(ip, port, user, pass);
 
 		String warning = null;
@@ -70,15 +70,13 @@ public class Main {
 		if (warning != null) {
 			gui.message(warning, "", JOptionPane.WARNING_MESSAGE);
 		}
+		
+		// check if link is already set
+		if (Preferences.isLink()) {
+			// if so, link
+			LinkManager.link();
+		}
 
-	}
-
-	private static BigDecimal /* (¬‿¬) */ createBigD(int whole, int dec) {
-		BigDecimal decimals = new BigDecimal(dec < 99999 ? dec : 99999);
-		decimals = decimals.divide(new BigDecimal(100000));
-		BigDecimal amount = new BigDecimal(whole);
-		amount = amount.add(decimals);
-		return amount;
 	}
 
 }
