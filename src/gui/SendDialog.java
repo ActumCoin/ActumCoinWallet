@@ -1,6 +1,8 @@
 package gui;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.*;
 
@@ -8,6 +10,7 @@ import balance.Balance;
 import balance.Balances;
 import balance.SendManager;
 import multichain.command.MultichainException;
+import multichain.object.BalanceAsset;
 import net.miginfocom.swing.MigLayout;
 
 public class SendDialog {
@@ -16,11 +19,9 @@ public class SendDialog {
 	private String token;
 	private String address;
 	private boolean repeat;
-	private SendManager sm;
+	private Balances newBalances;
 
-	public SendDialog(Balances balances, SendManager s) {
-		sm = s;
-		
+	public SendDialog(Balances balances) {
 		String[] options = { "Next", "Cancel" };
 
 		JPanel panel = new JPanel();
@@ -51,10 +52,26 @@ public class SendDialog {
 				
 				// send
 				try {
-					s.send(new Balance(token, amount), address);
+					SendManager.getInstance().send(new Balance(token, amount), address);
+				} catch (MultichainException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
+				// get new balances
+				List<BalanceAsset> balancesList = null;
+				try {
+					balancesList = SendManager.getInstance().getmCommand().getBalanceCommand().getTotalBalances();
 				} catch (MultichainException e) {
 					e.printStackTrace();
 				}
+				
+				List<Balance> b = new ArrayList<Balance>();
+				for (BalanceAsset ba : balancesList) {
+					b.add(new Balance(ba.getName(), new BigDecimal(ba.getQty())));
+				}
+
+				Balances newBalances = new Balances(b);
 			} else {
 				JOptionPane.showMessageDialog(panel, "You do not have enough " + token + " to complete the transaction.\nYou need " + amount.subtract(balances.getBalanceFor(token)) + " more " + token + ".", "Insufficient " + token, JOptionPane.WARNING_MESSAGE);
 				repeat = true;
@@ -84,6 +101,10 @@ public class SendDialog {
 
 	public boolean isRepeat() {
 		return repeat;
+	}
+
+	public Balances getNewBalances() {
+		return newBalances;
 	}
 
 }
