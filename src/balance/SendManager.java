@@ -11,6 +11,7 @@ public class SendManager {
 	
 	private MultiChainCommand mCommand;
 	private String address;
+	private static SendManager instance = null;
 
 	public SendManager(MultiChainCommand m, String a) {
 		mCommand = m;
@@ -22,8 +23,21 @@ public class SendManager {
 		BalanceAssetBase bab = new BalanceAssetBase();
 		bab.setName(balance.getToken());
 		bab.setQty(balance.getValue().doubleValue());
+		System.out.println(bab);
 		babList.add(bab);
 		mCommand.getWalletTransactionCommand().sendFromAddress(address, rxAddress, babList);
+	}
+
+	public static SendManager getInstance() {
+		return instance;
+	}
+	
+	public static void createInstance (MultiChainCommand m, String a) {
+		instance = new SendManager(m, a);
+	}
+
+	public MultiChainCommand getmCommand() {
+		return mCommand;
 	}
 
 }
