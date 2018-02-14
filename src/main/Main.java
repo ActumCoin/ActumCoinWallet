@@ -24,10 +24,10 @@ public class Main {
 		new Preferences();
 
 		// connect to blockchain
-		String ip = "localhost"; // <-will change lol
+		String ip = "localhost";
 		String port = "4796";
 		String user = "multichainrpc";
-		String pass = "DzLbpqFWStpVajzyokHeYUmuYcVq5fUuPweV8fzW11Pf";
+		String pass = "password";
 		MultiChainCommand m = new MultiChainCommand(ip, port, user, pass);
 
 		String warning = null;
@@ -69,12 +69,6 @@ public class Main {
 		
 		if (warning != null) {
 			gui.message(warning, "", JOptionPane.WARNING_MESSAGE);
-		}
-		
-		// check if link is already set
-		if (Preferences.isLink()) {
-			// if so, link
-			LinkManager.link();
 		}
 
 	}
