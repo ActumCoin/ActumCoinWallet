@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 import balance.Balance;
 import balance.Balances;
 import balance.SendManager;
@@ -12,6 +14,7 @@ import gui.QR;
 import multichain.command.MultiChainCommand;
 import multichain.command.MultichainException;
 import multichain.object.BalanceAsset;
+import util.LinkManager;
 import util.Preferences;
 
 public class Main {
@@ -21,19 +24,21 @@ public class Main {
 		new Preferences();
 
 		// connect to blockchain
-		String ip = "localhost"; // <-will change lol
-		String port = "6462";
+		String ip = "localhost";
+		String port = "4796";
 		String user = "multichainrpc";
-		String pass = "HdEvYTGhbHo457TmmN2FZWZfHbMegeFehPVEdKy8VJGi";
+		String pass = "password (not the real password)";
 		MultiChainCommand m = new MultiChainCommand(ip, port, user, pass);
 
-
+		String warning = null;
+		
 		// get address
 		List<String> addresses = null;
 		try {
 			addresses = m.getAddressCommand().getAddresses();
 		} catch (MultichainException e) {
 			e.printStackTrace();
+			warning = "ActumWallet could not connect to the Actum blockchain. Please check your internet connection and try again.";
 		}
 
 		String address = null;
@@ -42,8 +47,8 @@ public class Main {
 			address = a;
 		}
 		
-		SendManager sm = new SendManager(m, address);
-
+		SendManager.createInstance(m, address);
+		
 		/* balances */
 		// get balances
 		List<BalanceAsset> balancesList = null;
@@ -60,7 +65,11 @@ public class Main {
 
 		Balances balances = new Balances(b);
 
-		new GUI(balances, address, sm);
+		GUI gui = new GUI(balances, address);
+		
+		if (warning != null) {
+			gui.message(warning, "", JOptionPane.WARNING_MESSAGE);
+		}
 
 	}
 
