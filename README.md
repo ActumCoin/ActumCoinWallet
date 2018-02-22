@@ -1,4 +1,4 @@
-<img src="https://github.com/ActumCoin/ActumMiner/blob/master/res/logo.png">
+<img src="https://actumcrypto.org/svg/logo.svg">
 
 # ActumCoinWallet
 
