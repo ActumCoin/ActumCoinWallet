@@ -12,45 +12,39 @@ import javax.swing.*;
 
 import balance.Balance;
 import balance.Balances;
-import balance.SendManager;
-import util.Preferences;
-import util.TransactionCode;
 
 public class GUI extends JFrame {
 	private JFrame f;
-	private boolean isPreferences;
+	private String address;
+	private Balances balances;
 
-	public GUI(Balances balances, String address, SendManager sm) {
+	public GUI(Balances b, String a) {
+		// variables
+		address = a;
+		balances = b;
+		
 		// init
 		setUIFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 26));
 		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-		new QR(address);
 
 		// logo
 		JLabel logo = new JLabel(new ImageIcon("res/logo.png"));
-		logo.setBounds(274, 0, 171, 119);// gah! not quite centered, should be right another 0.5 pixels
-
-		// transaction code button
-		JButton codeButton = new JButton("Enter Code");
-		codeButton.setBounds(10, 10, 210, 40);
-		codeButton.setBackground(Color.WHITE);
+		logo.setBounds(75, 65, 100, 100);// gah! not quite centered, should be right another 0.5 pixels
 
 		// send button
 		JButton sendButton = new JButton("Send");
-		sendButton.setBounds(260, 139, 210, 40);
+		sendButton.setBounds(260, 10, 210, 40);
 		sendButton.setBackground(Color.WHITE);
 
-		// preferences button
-		JButton preferencesButton = new JButton("Preferences");
-		preferencesButton.setBounds(480, 10, 210, 40);
-		preferencesButton.setBackground(Color.WHITE);
-
-		// preferences stuff
-		CheckBox linkCheckBox = new CheckBox("Link with miner", Preferences.isLink());
-		linkCheckBox.setBounds(480, 60, 200, 30);
-		linkCheckBox.setVisible(false);
-		linkCheckBox.setToolTipText(
-				"This allows ActumCoinWallet to automatically sync with your ActumMiner, if it's on this PC.");
+		// info
+		JLabel info = new JLabel("ActumWallet v1.0.0");
+		info.setBounds(30, 10, 210, 40);
+		info.setFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 22));
+		
+		// help button
+		JButton helpButton = new JButton("Help");
+		helpButton.setBounds(480, 10, 210, 40);
+		helpButton.setBackground(Color.WHITE);
 
 		// balances
 		JLabel balanceLabel = new JLabel(balances.getBalances().get(0).toString());
@@ -60,7 +54,7 @@ public class GUI extends JFrame {
 		int currentIndex = 0;
 		List<JLabel> balanceLabels = new ArrayList<JLabel>();
 		for (Balance balance : balances.getBalances()) {
-			if (currentIndex != 0 || currentIndex < 6) {
+			if (currentIndex != 0 && currentIndex <= 5) {
 				JLabel label = new JLabel(balance.toString());
 				label.setBounds(col(currentIndex),  row(currentIndex), 700, 60);
 				balanceLabels.add(label);
@@ -68,65 +62,44 @@ public class GUI extends JFrame {
 			currentIndex++;
 		}
 		
+		// all button
+		if (balances.getBalances().size() > 6) {
+			// button
+			JButton allButton = new JButton("See All");
+			allButton.setBounds(470, 272, 130, 30);
+			allButton.setBackground(Color.WHITE);
+			
+			// action listener and all window
+			String bs = "";
+			for (Balance balance : balances.getBalances()) {
+				bs += balance.toString() + "\n";
+			}
+			final String balanceString = bs;
+			allButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					JOptionPane.showMessageDialog(f, balanceString, "Balances", JOptionPane.PLAIN_MESSAGE);
+				}
+			});
+			
+			// add
+			add(allButton);
+		}
+		
 		// address
 		JLabel addressLabel = new JLabel(address);
 		addressLabel.setBounds(10, 306, 700, 26);
 		addressLabel.setFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 16));
 		addressLabel.addMouseListener(new PopClickListener(address));
-		
-		// qr code
-		JLabel qr = new JLabel(new ImageIcon("res/qr.png"));
-		qr.setBounds(485, 48, 200, 200);
-		qr.setToolTipText(
-				"Scanning this QR code outputs your wallet address, allowing you to easily send Actum to others.");
 
 		// button listeners
-		codeButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String s = (String) JOptionPane.showInputDialog(f, "Enter a transaction code",
-						"Enter a transaction code", JOptionPane.PLAIN_MESSAGE, null, null, "");
-
-				if ((s != null) && (s.length() > 0)) {
-					TransactionCode tc = new TransactionCode(s);
-
-					int result = JOptionPane.showConfirmDialog(f, "<html>Confirm that you would like to send " + tc.getToken() + " " + tc.getAmount() + ".</html>",
-							"Confirm transaction", JOptionPane.CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
-
-					if (result == JOptionPane.OK_OPTION) {
-						// send
-					}
-				}
-			}
-		});
-
 		sendButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				SendDialog s = new SendDialog(balances, sm);
+				SendDialog s = new SendDialog(balances);
 
 				while (s.isRepeat()) {
-					s = new SendDialog(balances, sm);
+					s = new SendDialog(balances);
 				}
 				
-				
-
-				System.out.println(s.getAmount());
-			}
-		});
-
-		preferencesButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				isPreferences = !isPreferences;
-				linkCheckBox.setVisible(isPreferences);
-				if (isPreferences) {
-					// if already closed
-					preferencesButton.setText("Save");
-				} else {
-					// if already open\
-					System.out.println(linkCheckBox.isChecked());
-					Preferences.setLink(linkCheckBox.isChecked());
-					preferencesButton.setText("Preferences");
-				}
-
 			}
 		});
 
@@ -138,13 +111,11 @@ public class GUI extends JFrame {
 		});
 
 		add(logo);
-		add(codeButton);
 		add(sendButton);
-		add(preferencesButton);
-		add(linkCheckBox);
+		add(info);
+		add(helpButton);
 		add(balanceLabel);
 		add(addressLabel);
-		add(qr);
 		
 		// balances
 		for (JLabel label : balanceLabels) {
@@ -158,7 +129,7 @@ public class GUI extends JFrame {
 			e1.printStackTrace();
 		}
 
-		setTitle("ActumCoinWallet");
+		setTitle("ActumWallet");
 		setSize(720, 376);
 		setLayout(null);
 		setResizable(false);
@@ -185,6 +156,10 @@ public class GUI extends JFrame {
 		// returns col x coordinate
 		float half = i/2f;
 		return (int) (10 + (Math.round(half)-1)*230);
+	}
+	
+	public void message(String title, String message, int type) {
+		JOptionPane.showMessageDialog(f, message, title, type);
 	}
 
 }
