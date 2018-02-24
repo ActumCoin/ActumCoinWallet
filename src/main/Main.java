@@ -10,24 +10,18 @@ import balance.Balance;
 import balance.Balances;
 import balance.SendManager;
 import gui.GUI;
-import gui.QR;
 import multichain.command.MultiChainCommand;
 import multichain.command.MultichainException;
 import multichain.object.BalanceAsset;
-import util.LinkManager;
-import util.Preferences;
 
 public class Main {
 
 	public static void main(String[] args) {
-		// init
-		new Preferences();
-
 		// connect to blockchain
 		String ip = "localhost";
-		String port = "4796";
+		String port = "7440";
 		String user = "multichainrpc";
-		String pass = "password";
+		String pass = "DzLbpqFWStpVajzyokHeYUmuYcVq5fUuPweV8fzW11Pf";
 		MultiChainCommand m = new MultiChainCommand(ip, port, user, pass);
 
 		String warning = null;
