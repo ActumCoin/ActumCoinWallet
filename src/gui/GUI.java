@@ -3,6 +3,10 @@ package gui;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -102,6 +106,16 @@ public class GUI extends JFrame {
 				
 			}
 		});
+		
+		helpButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					openWebpage(new URL("https://actumcrypto.org/help/actum-wallet"));
+				} catch (MalformedURLException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 
 		// window close listener
 		this.addWindowListener(new WindowAdapter() {
@@ -160,6 +174,32 @@ public class GUI extends JFrame {
 	
 	public void message(String title, String message, int type) {
 		JOptionPane.showMessageDialog(f, message, title, type);
+	}
+	
+	public static boolean openWebpage(URI uri) {
+	    Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+	    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+	        try {
+	            desktop.browse(uri);
+	            return true;
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
+	    return false;
+	}
+
+	public static boolean openWebpage(URL url) {
+	    Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+	    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+	        try {
+	            desktop.browse(url.toURI());
+	            return true;
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
+	    return false;
 	}
 
 }
