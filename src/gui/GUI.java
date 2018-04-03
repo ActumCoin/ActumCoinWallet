@@ -95,7 +95,7 @@ public class GUI extends JFrame {
 		sendButton.setBackground(Color.WHITE);
 
 		// info
-		JLabel info = new JLabel("ActumWallet v1.0.0");
+		JLabel info = new JLabel("ActumWallet v1.0.1");
 		info.setBounds(30, 10, 210, 40);
 		info.setFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 22));
 
