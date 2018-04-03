@@ -1,5 +1,6 @@
 package main;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,52 +19,23 @@ public class Main {
 
 	public static void main(String[] args) {
 		// connect to blockchain
+		try {
+			Runtime.getRuntime().exec("multichaind e -daemon");
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		
 		String ip = "localhost";
-		String port = "7440";
+		String port = "2688";
 		String user = "multichainrpc";
-		String pass = "DzLbpqFWStpVajzyokHeYUmuYcVq5fUuPweV8fzW11Pf";
+		String pass = "6gPTcFXitC617RxEucprgxJXYwyiL2bQYUqi3cs4PAtM";
 		MultiChainCommand m = new MultiChainCommand(ip, port, user, pass);
 
 		String warning = null;
 		
-		// get address
-		List<String> addresses = null;
-		try {
-			addresses = m.getAddressCommand().getAddresses();
-		} catch (MultichainException e) {
-			e.printStackTrace();
-			warning = "ActumWallet could not connect to the Actum blockchain. Please check your internet connection and try again.";
-		}
-
-		String address = null;
-
-		for (String a : addresses) {
-			address = a;
-		}
 		
-		SendManager.createInstance(m, address);
-		
-		/* balances */
-		// get balances
-		List<BalanceAsset> balancesList = null;
-		try {
-			balancesList = m.getBalanceCommand().getTotalBalances();
-		} catch (MultichainException e) {
-			e.printStackTrace();
-		}
-		
-		List<Balance> b = new ArrayList<Balance>();
-		for (BalanceAsset ba : balancesList) {
-			b.add(new Balance(ba.getName(), new BigDecimal(ba.getQty())));
-		}
 
-		Balances balances = new Balances(b);
-
-		GUI gui = new GUI(balances, address);
-		
-		if (warning != null) {
-			gui.message(warning, "", JOptionPane.WARNING_MESSAGE);
-		}
+		GUI.createInstance(m);
 
 	}
 
