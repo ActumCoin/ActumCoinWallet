@@ -3,30 +3,84 @@ package gui;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import balance.Balance;
+import balance.BalanceManager;
 import balance.Balances;
+import balance.SendManager;
+import multichain.command.MultiChainCommand;
+import multichain.command.MultichainException;
+import multichain.object.BalanceAsset;
 
 public class GUI extends JFrame {
 	private JFrame f;
 	private String address;
 	private Balances balances;
+	private static GUI instance;
 
-	public GUI(Balances b, String a) {
-		// variables
-		address = a;
-		balances = b;
+	public GUI(MultiChainCommand m) {
+		// get address
+		List<String> addresses = null;
+		try {
+			addresses = m.getAddressCommand().getAddresses();
+		} catch (MultichainException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(f, "ActumWallet could not connect to the Actum blockchain. Please check your internet connection and try again.", "Error!", JOptionPane.WARNING_MESSAGE);
+		}
+
+		String address = null;
+
+		for (String a : addresses) {
+			address = a;
+		}
+
+		SendManager.createInstance(m, address);
+
+		/* balances */
+		// get balances
+		List<BalanceAsset> balancesList = null;
+		try {
+			balancesList = m.getBalanceCommand().getTotalBalances();
+		} catch (MultichainException e) {
+			e.printStackTrace();
+		}
+
+		List<Balance> b = new ArrayList<Balance>();
+		for (BalanceAsset ba : balancesList) {
+			b.add(new Balance(ba.getName(), new BigDecimal(ba.getQty())));
+		}
+
+		Balances balances = new Balances(b);
 		
+		final String la = address;
+		
+		Thread recievedListener = new Thread() {
+			public void run() {
+				try {
+					while(!BalanceManager.getInstance().checkReceivedGreater(new Balance("acm",  BigDecimal.ZERO), la)) {
+						TimeUnit.MINUTES.sleep(1);
+					}
+					GUI.getInstance().destroy();
+					GUI.createInstance(m);
+				} catch (MultichainException e) {
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+
 		// init
 		setUIFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 26));
 		this.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -44,35 +98,40 @@ public class GUI extends JFrame {
 		JLabel info = new JLabel("ActumWallet v1.0.0");
 		info.setBounds(30, 10, 210, 40);
 		info.setFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 22));
-		
+
 		// help button
 		JButton helpButton = new JButton("Help");
 		helpButton.setBounds(480, 10, 210, 40);
 		helpButton.setBackground(Color.WHITE);
 
 		// balances
-		JLabel balanceLabel = new JLabel(balances.getBalances().get(0).toString());
+		JLabel balanceLabel;
+		try {
+			balanceLabel = new JLabel(balances.getBalances().get(0).toString());
+		} catch (IndexOutOfBoundsException e) {
+			balanceLabel = new JLabel("No Balances");
+		}
 		balanceLabel.setBounds(10, 189, 700, 60);
 		balanceLabel.setFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 60));
-		
+
 		int currentIndex = 0;
 		List<JLabel> balanceLabels = new ArrayList<JLabel>();
 		for (Balance balance : balances.getBalances()) {
 			if (currentIndex != 0 && currentIndex <= 5) {
 				JLabel label = new JLabel(balance.toString());
-				label.setBounds(col(currentIndex),  row(currentIndex), 700, 60);
+				label.setBounds(col(currentIndex), row(currentIndex), 700, 60);
 				balanceLabels.add(label);
 			}
 			currentIndex++;
 		}
-		
+
 		// all button
 		if (balances.getBalances().size() > 6) {
 			// button
 			JButton allButton = new JButton("See All");
 			allButton.setBounds(470, 272, 130, 30);
 			allButton.setBackground(Color.WHITE);
-			
+
 			// action listener and all window
 			String bs = "";
 			for (Balance balance : balances.getBalances()) {
@@ -84,11 +143,11 @@ public class GUI extends JFrame {
 					JOptionPane.showMessageDialog(f, balanceString, "Balances", JOptionPane.PLAIN_MESSAGE);
 				}
 			});
-			
+
 			// add
 			add(allButton);
 		}
-		
+
 		// address
 		JLabel addressLabel = new JLabel(address);
 		addressLabel.setBounds(10, 306, 700, 26);
@@ -98,15 +157,15 @@ public class GUI extends JFrame {
 		// button listeners
 		sendButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				SendDialog s = new SendDialog(balances);
+				SendDialog s = new SendDialog(balances, m);
 
 				while (s.isRepeat()) {
-					s = new SendDialog(balances);
+					s = new SendDialog(balances, m);
 				}
-				
+
 			}
 		});
-		
+
 		helpButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -130,7 +189,7 @@ public class GUI extends JFrame {
 		add(helpButton);
 		add(balanceLabel);
 		add(addressLabel);
-		
+
 		// balances
 		for (JLabel label : balanceLabels) {
 			add(label);
@@ -160,46 +219,54 @@ public class GUI extends JFrame {
 		}
 		UIManager.put("ToolTip.font", new javax.swing.plaf.FontUIResource(f.getFontName(), Font.ITALIC, 14));
 	}
-	
+
 	private int row(int i) {
 		// returns row y coordinate
-		return 199 + ((i%2)==0 ? 2 : 1)*30;
+		return 199 + ((i % 2) == 0 ? 2 : 1) * 30;
 	}
-	
+
 	private int col(int i) {
 		// returns col x coordinate
-		float half = i/2f;
-		return (int) (10 + (Math.round(half)-1)*230);
+		float half = i / 2f;
+		return (int) (10 + (Math.round(half) - 1) * 230);
 	}
-	
-	public void message(String title, String message, int type) {
-		JOptionPane.showMessageDialog(f, message, title, type);
-	}
-	
+
 	public static boolean openWebpage(URI uri) {
-	    Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-	    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
-	        try {
-	            desktop.browse(uri);
-	            return true;
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
-	    }
-	    return false;
+		Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+		if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+			try {
+				desktop.browse(uri);
+				return true;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
 	}
 
 	public static boolean openWebpage(URL url) {
-	    Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-	    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
-	        try {
-	            desktop.browse(url.toURI());
-	            return true;
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
-	    }
-	    return false;
+		Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+		if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+			try {
+				desktop.browse(url.toURI());
+				return true;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+
+	public static GUI getInstance() {
+		return instance;
+	}
+
+	public static void createInstance(MultiChainCommand m) {
+		instance = new GUI(m);
+	}
+
+	public void destroy() {
+		dispose();
 	}
 
 }
