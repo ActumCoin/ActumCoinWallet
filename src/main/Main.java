@@ -50,10 +50,8 @@ public class Main {
 		        lineNum++;
 		        if (line.substring(0, Math.min(line.length(), 8)).equals("rpcuser=")) {
 		        	user = line.substring(8, line.length());
-		        	System.out.println(user);
 		        } else if (line.substring(0, Math.min(line.length(), 12)).equals("rpcpassword=")) { 
 		            pass = line.substring(12, line.length());
-		            System.out.println(pass);
 		        }
 		    }
 		} catch(FileNotFoundException e) { 
