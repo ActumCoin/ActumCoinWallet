@@ -80,6 +80,7 @@ public class GUI extends JFrame {
 				}
 			}
 		};
+		recievedListener.start();
 
 		// init
 		setUIFont(new javax.swing.plaf.FontUIResource("Arial", Font.PLAIN, 26));
