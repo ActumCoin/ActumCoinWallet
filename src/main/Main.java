@@ -84,6 +84,13 @@ public class Main {
 		}
 
 		MultiChainCommand m = new MultiChainCommand(ip, port, user, pass);
+		
+		// so the wallet doesnt mine
+		try {
+			m.getMiningCommand().pauseMining();
+		} catch (MultichainException e) {
+			e.printStackTrace();
+		}
 
 		GUI.createInstance(m);
 
